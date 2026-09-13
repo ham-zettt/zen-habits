@@ -1,0 +1,46 @@
+# Local environment (contains secrets)
+backend/.env
+backend/.env.example
+
+# Build output
+backend/tmp/
+backend/main
+backend/build-errors.log
+backend/*.log
+backend/bin/
+
+# =========================
+# Frontend - Next.js
+# =========================
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/build/
+/frontend/.vercel/
+
+/frontend/.env*
+/frontend/*.pem
+
+# =========================
+# Logs
+# =========================
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/.pnpm-debug.log*
+
+# =========================
+# TypeScript
+# =========================
+/frontend/*.tsbuildinfo
+/frontend/next-env.d.ts
+
+# =========================
+# Testing
+# =========================
+/frontend/coverage/
+
+# =========================
+# Misc
+# =========================
+.DS_Store
