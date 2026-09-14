@@ -15,7 +15,8 @@ Go + Gin + GORM API for ZenHabits, backed by PostgreSQL.
    createdb zenhabits-v2
    ```
 
-2. Configure environment. `.env` is read automatically:
+2. Configure environment. `.env` is read automatically; see `.env.example`
+   for the full list.
 
    ```dotenv
    PORT=8080
@@ -27,6 +28,7 @@ Go + Gin + GORM API for ZenHabits, backed by PostgreSQL.
    ACCESS_TOKEN_TTL=15m
    REFRESH_TOKEN_TTL=720h
    COOKIE_SECURE=false
+   RUN_MIGRATIONS=true
    ```
 
    > Keep the quotes around an empty `password=''`. An unquoted `password=`
@@ -41,31 +43,74 @@ Go + Gin + GORM API for ZenHabits, backed by PostgreSQL.
    air
    ```
 
-   Tables are created on boot via GORM `AutoMigrate`.
+   Tables are created on boot via GORM `AutoMigrate` when `RUN_MIGRATIONS=true`.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `go run .` | Start the API on `:8080` |
+| `go run .` | Start the API on `:8080` (or `$PORT`) |
+| `go run ./cmd/migrate` | Apply the schema without starting the server |
 | `go build ./...` | Compile everything |
 | `go vet ./...` | Static checks |
 | `go test ./...` | Run unit tests |
+
+## Deploying to Vercel
+
+The backend uses Vercel's [Go framework preset](https://vercel.com/docs/functions/runtimes/go),
+which runs a standard Gin/`net/http` server. `vercel.json` sets
+`"framework": "go"` and the server already listens on `$PORT`.
+
+1. **Create a Postgres database** with a managed provider (Vercel Postgres,
+   Neon, Supabase, …) and copy its connection string. Use `sslmode=require`.
+2. **Import the repo** into Vercel as a new project and set **Root Directory**
+   to `backend`.
+3. **Set environment variables** (Production and Preview):
+
+   | Variable | Production value |
+   | --- | --- |
+   | `DATABASE_URL` | `postgres://user:pass@host/db?sslmode=require` |
+   | `JWT_SECRET` | a long random string |
+   | `FRONTEND_URL` | your frontend URL, e.g. `https://zenhabits.vercel.app` |
+   | `GIN_MODE` | `release` |
+   | `COOKIE_SECURE` | `true` |
+   | `RUN_MIGRATIONS` | `false` |
+   | `DB_MAX_OPEN_CONNS` | `5` |
+   | `DB_LOG_LEVEL` | `error` |
+
+4. **Run migrations once** from your machine against the production database:
+
+   ```bash
+   DATABASE_URL='postgres://…' go run ./cmd/migrate
+   ```
+
+5. Deploy. Note the project URL — the frontend needs it as `BACKEND_URL`.
+
+**Preview deployments:** add the frontend preview URL to `FRONTEND_URL`, or use
+a wildcard so every preview is accepted:
+
+```dotenv
+FRONTEND_URL=https://zenhabits.vercel.app,https://*.vercel.app
+```
+
+`FRONTEND_URL` is a comma-separated list; entries may be exact origins, `*`,
+or host wildcards.
 
 ## Architecture
 
 `Route → Controller → Service → Repository (GORM) → Database`
 
 ```
-config/         Environment loading, DB connection
+config/         Environment loading, DB connection, pool limits
 controllers/    Gin handlers: parse request, call service, return JSON
 middleware/     Auth (access cookie), CORS, origin check, request logger
 models/         GORM entities
-repositories/   (reserved for direct query helpers)
+repositories/   Direct GORM queries per entity
 routes/         Route registration grouped by feature
 services/       Business logic, request DTOs, validation
 utils/          JWT signing, password hashing, token hashing
-main.go         Wiring
+cmd/migrate/    One-off schema migration command
+main.go         Wiring and HTTP server
 ```
 
 ## Authentication

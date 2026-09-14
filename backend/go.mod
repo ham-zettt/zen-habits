@@ -1,6 +1,6 @@
 module github.com/ham-zettt/zen-habits
 
-go 1.26.5
+go 1.26
 
 require (
 	github.com/gin-contrib/cors v1.7.8
