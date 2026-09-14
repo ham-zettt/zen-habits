@@ -29,6 +29,22 @@ cross-site configuration. Override with `BACKEND_URL` in `.env.local`.
 | `npm run lint`     | ESLint                                       |
 | `npm run test:e2e` | Playwright smoke tests (starts both servers) |
 
+## Deploying to Vercel
+
+Next.js is detected automatically; no `vercel.json` is required.
+
+1. **Import the repo** into Vercel as a new project and set **Root Directory**
+   to `frontend`.
+2. **Set `BACKEND_URL`** to the deployed backend URL, e.g.
+   `https://zenhabits-api.vercel.app` (Production and Preview). The build
+   fails with a clear message if it is missing on Vercel.
+3. Deploy.
+
+The `/api/*` rewrite makes the Next server proxy to the backend, so the browser
+only ever talks to the frontend origin and the `httpOnly` cookies stay
+first-party. Redeploy the frontend if the backend URL changes, since rewrites
+are baked in at build time.
+
 ## Structure
 
 ```
