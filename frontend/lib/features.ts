@@ -1,47 +1,33 @@
 import {
-  BookOpen,
-  Briefcase,
   CalendarDays,
-  ListTodo,
+  Layers,
   Timer,
   Wallet,
   type LucideIcon,
 } from "lucide-react";
 
 export type Feature = {
-  href: string;
   icon: LucideIcon;
   title: string;
   description: string;
+  href?: string;
 };
 
-export const FEATURES: Feature[] = [
-  {
-    href: "/app/todos",
-    icon: ListTodo,
-    title: "Todo List",
-    description:
-      "Daily tasks sorted by priority, with completed items moved to the bottom.",
-  },
-  {
-    href: "/app/study",
-    icon: BookOpen,
-    title: "Study Plan",
-    description:
-      "Learning topics with reference links, checked off as you finish them.",
-  },
+/** The headline feature: user-defined modules. */
+export const MODULE_FEATURE: Feature = {
+  icon: Layers,
+  title: "Custom Modules",
+  description:
+    "Build your own lists with your own fields — text, dropdown, subtask, date, or link — so ZenHabits fits how you actually work.",
+};
+
+/** The three fixed tools that ship alongside custom modules. */
+export const FIXED_FEATURES: Feature[] = [
   {
     href: "/app/calendar",
     icon: CalendarDays,
     title: "Calendar",
     description: "Add reminders and events to specific dates in a month view.",
-  },
-  {
-    href: "/app/jobs",
-    icon: Briefcase,
-    title: "Job Tracker",
-    description:
-      "Save listings and track each application from planning to decision.",
   },
   {
     href: "/app/timer",

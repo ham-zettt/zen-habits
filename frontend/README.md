@@ -53,18 +53,25 @@ app/
   (auth)/login          Sign in
   (auth)/register       Create account
   app/                  Authenticated shell (sidebar + mobile drawer)
-    page.tsx            Overview
-    todos/ study/ calendar/ jobs/ timer/ expenses/
+    page.tsx            Overview (modules + fixed tools)
+    modules/new         Create a module
+    modules/[id]        Module items
+    modules/[id]/edit   Edit module structure
+    calendar/ timer/ expenses/
 components/
   ui/                   Button, Input, Card, Modal, badges, states…
-  app-shell.tsx         Navigation shell
+  modules/              Generic field input/display, structure builder, item form/card
+  app-shell.tsx         Navigation shell (dynamic module list)
   finance/              Wishlist panel
   landing/              Marketing preview panel
-context/auth.tsx        Session state (loads /api/auth/me)
+context/
+  auth.tsx              Session state (loads /api/auth/me)
+  modules.tsx           The user's modules, shared by the nav and pages
 lib/
   api.ts                fetch wrapper with silent refresh-on-401
   use-api.ts            GET + reload hook
   date.ts / format.ts   Formatting helpers
+  module-values.ts      Field value coercion helpers
 proxy.ts                Optimistic route guard (cookie presence only)
 ```
 
@@ -74,6 +81,13 @@ Tokens live in `httpOnly` cookies and are never readable from JavaScript.
 `AuthProvider` calls `GET /api/auth/me` on load; `apiFetch` transparently
 refreshes once on a 401 and replays the request. `proxy.ts` only checks cookie
 presence for fast redirects — the backend is the real authorization gate.
+
+## Custom modules
+
+The nav and the module pages are data-driven. `ModulesProvider` loads the user's
+modules once and shares them with the sidebar and the overview. Module items are
+rendered by one generic `FieldDisplay` and edited by one generic `FieldInput`,
+both switching on the field `type`, so a new field type only needs a new case.
 
 ## Testing
 

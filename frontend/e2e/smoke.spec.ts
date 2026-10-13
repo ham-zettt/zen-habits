@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("register, add a task, toggle it, and sign out", async ({ page }) => {
+test("register, add an item, toggle it, and sign out", async ({ page }) => {
   const email = `smoke+${Date.now()}@example.com`;
 
   await page.goto("/register");
@@ -10,17 +10,23 @@ test("register, add a task, toggle it, and sign out", async ({ page }) => {
   await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/app$/);
-  await expect(
-    page.getByRole("heading", { name: "Your day, in one place" }),
-  ).toBeVisible();
 
-  await page.goto("/app/todos");
-  await page.getByLabel("Task name").fill("Buy milk");
-  await page.getByRole("button", { name: "Add task" }).click();
+  // The default Todo List module is seeded on registration.
+  await page
+    .getByRole("navigation", { name: "Main" })
+    .getByRole("link", { name: "Todo List" })
+    .click();
+  await expect(page).toHaveURL(/\/app\/modules\/.+/);
+
+  await page.getByRole("button", { name: "Add item" }).first().click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Title").fill("Buy milk");
+  await dialog.getByLabel("Status").selectOption("Urgent");
+  await dialog.getByRole("button", { name: "Add item" }).click();
+
   await expect(page.getByText("Buy milk")).toBeVisible();
 
-  const checkbox = page.getByRole("checkbox", { name: /Mark "Buy milk"/ });
-  await checkbox.click();
+  await page.getByRole("checkbox", { name: /Mark "Buy milk"/ }).click();
   await expect(
     page.getByRole("checkbox", { name: /Mark "Buy milk" as not done/ }),
   ).toBeVisible();

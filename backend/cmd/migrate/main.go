@@ -26,5 +26,9 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
+	if err := runLegacyMigration(db); err != nil {
+		log.Fatalf("legacy migration: %v", err)
+	}
+
 	log.Println("migrations complete")
 }

@@ -20,10 +20,8 @@ func Register(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	})
 
 	registerAuthRoutes(api, db, cfg)
-	registerTodoRoutes(api, db, cfg)
-	registerStudyRoutes(api, db, cfg)
+	registerModuleRoutes(api, db, cfg)
 	registerReminderRoutes(api, db, cfg)
-	registerJobRoutes(api, db, cfg)
 	registerWorkSessionRoutes(api, db, cfg)
 	registerFinanceRoutes(api, db, cfg)
 }

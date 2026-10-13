@@ -8,24 +8,31 @@ import {
   Briefcase,
   CalendarDays,
   LayoutDashboard,
+  ListChecks,
   ListTodo,
   LogOut,
   Menu,
+  Plus,
   Timer,
   Wallet,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 import { Brand } from "@/components/brand";
 import { useAuth } from "@/context/auth";
+import { useModules } from "@/context/modules";
 import { cn } from "@/lib/cn";
 
-const NAV = [
-  { href: "/app", label: "Overview", icon: LayoutDashboard },
-  { href: "/app/todos", label: "Todo List", icon: ListTodo },
-  { href: "/app/study", label: "Study Plan", icon: BookOpen },
+// Nicer icons for the starter modules; anything custom gets a generic icon.
+const MODULE_ICONS: Record<string, LucideIcon> = {
+  "Todo List": ListTodo,
+  "Study Plan": BookOpen,
+  "Job Tracker": Briefcase,
+};
+
+const FIXED_NAV = [
   { href: "/app/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/app/jobs", label: "Job Tracker", icon: Briefcase },
   { href: "/app/timer", label: "Work Timer", icon: Timer },
   { href: "/app/expenses", label: "Expenses", icon: Wallet },
 ];
@@ -35,32 +42,82 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  active,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex items-center gap-3 rounded-md px-3 py-2 text-body-sm transition-colors",
+        active
+          ? "bg-surface-2 text-ink"
+          : "text-ink-subtle hover:bg-surface-1 hover:text-ink",
+      )}
+    >
+      <Icon className="size-4 shrink-0" />
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+}
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { modules } = useModules();
 
   return (
     <nav className="flex flex-col gap-1" aria-label="Main">
-      {NAV.map((item) => {
-        const active = isActive(pathname, item.href);
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-body-sm transition-colors",
-              active
-                ? "bg-surface-2 text-ink"
-                : "text-ink-subtle hover:bg-surface-1 hover:text-ink",
-            )}
-          >
-            <Icon className="size-4 shrink-0" />
-            {item.label}
-          </Link>
-        );
-      })}
+      <NavLink
+        href="/app"
+        label="Overview"
+        icon={LayoutDashboard}
+        active={isActive(pathname, "/app")}
+        onNavigate={onNavigate}
+      />
+
+      {modules.map((module) => (
+        <NavLink
+          key={module.id}
+          href={`/app/modules/${module.id}`}
+          label={module.title}
+          icon={MODULE_ICONS[module.title] ?? ListChecks}
+          active={isActive(pathname, `/app/modules/${module.id}`)}
+          onNavigate={onNavigate}
+        />
+      ))}
+
+      <NavLink
+        href="/app/modules/new"
+        label="Add Module"
+        icon={Plus}
+        active={isActive(pathname, "/app/modules/new")}
+        onNavigate={onNavigate}
+      />
+
+      <div className="my-2 border-t border-hairline" />
+
+      {FIXED_NAV.map((item) => (
+        <NavLink
+          key={item.href}
+          href={item.href}
+          label={item.label}
+          icon={item.icon}
+          active={isActive(pathname, item.href)}
+          onNavigate={onNavigate}
+        />
+      ))}
     </nav>
   );
 }
@@ -91,7 +148,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Link href="/" className="mb-6 px-3" aria-label="ZenHabits home">
           <Brand />
         </Link>
-        <div className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <NavLinks />
         </div>
         <div className="mt-6">{account}</div>
@@ -132,7 +189,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <X className="size-4" />
               </button>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 overflow-y-auto">
               <NavLinks onNavigate={() => setDrawerOpen(false)} />
             </div>
             <div className="mt-6">{account}</div>

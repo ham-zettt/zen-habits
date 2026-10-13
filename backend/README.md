@@ -109,7 +109,8 @@ repositories/   Direct GORM queries per entity
 routes/         Route registration grouped by feature
 services/       Business logic, request DTOs, validation
 utils/          JWT signing, password hashing, token hashing
-cmd/migrate/    One-off schema migration command
+cmd/migrate/    Schema + legacy-data migration command
+cmd/drop-legacy/ Drop the old Todo/Study/Job tables
 main.go         Wiring and HTTP server
 ```
 
@@ -132,18 +133,13 @@ main.go         Wiring and HTTP server
 | POST | `/api/auth/refresh` | Rotate tokens |
 | POST | `/api/auth/logout` | Revoke refresh token |
 | GET | `/api/auth/me` | Current user |
-| GET/POST | `/api/todos` | List / create tasks |
-| PATCH/DELETE | `/api/todos/:id` | Edit / delete task |
-| PATCH | `/api/todos/:id/toggle` | Toggle done |
-| GET/POST | `/api/study-plans` | List / create study plans |
-| PATCH/DELETE | `/api/study-plans/:id` | Edit / delete plan |
-| PATCH | `/api/study-plans/:id/toggle` | Toggle done |
-| POST | `/api/study-plans/:id/links` | Add reference link |
-| DELETE | `/api/study-links/:id` | Remove reference link |
+| GET/POST | `/api/modules` | List / create modules |
+| GET/PUT/DELETE | `/api/modules/:id` | Get / update / delete a module |
+| GET/POST | `/api/modules/:id/items` | List / create items |
+| PUT/DELETE | `/api/modules/:id/items/:itemId` | Edit / delete an item |
+| PATCH | `/api/modules/:id/items/:itemId/done` | Toggle item done |
 | GET/POST | `/api/reminders` | List (`?month=YYYY-MM`) / create |
 | PATCH/DELETE | `/api/reminders/:id` | Edit / delete reminder |
-| GET/POST | `/api/jobs` | List / create jobs |
-| PATCH/DELETE | `/api/jobs/:id` | Edit / delete job |
 | GET | `/api/work-sessions` | List sessions with durations |
 | POST | `/api/work-sessions/start` | Start a session |
 | PATCH | `/api/work-sessions/:id/stop` | Stop a session |
@@ -154,12 +150,44 @@ main.go         Wiring and HTTP server
 | GET/POST | `/api/wishlist` | List / create wishlist items |
 | PATCH/DELETE | `/api/wishlist/:id` | Edit / delete item |
 
+## Custom modules
+
+A module is a user-defined list with a title, a description, and an ordered set
+of field definitions. Every item has a title, a done flag, and values keyed by
+field id.
+
+- **Field types:** `text`, `dropdown`, `subtask`, `date`, `link`.
+- **Storage:** module field options and item values are JSONB (`datatypes.JSON`).
+  A subtask value is an array of `{ id, text, done }`. Dates are `YYYY-MM-DD`.
+- **Sorting:** done items always sink to the bottom. Otherwise items sort by the
+  option order of the module's first dropdown field, then newest first.
+- **Validation** lives in the service layer: field labels and types, dropdown
+  options, and item values are checked against the field definitions.
+- **Field updates:** a field's type is immutable. Removing a field also removes
+  its stored values from every item. Unknown field ids in item values are
+  ignored.
+- **Authorization:** every query is scoped to the authenticated user; a missing
+  or foreign resource returns 404.
+
+Three starter modules (Todo List, Study Plan, Job Tracker) are seeded for every
+new user on registration.
+
+## Migrating old Todo/Study/Job data
+
+`cmd/migrate` creates the schema, seeds starter modules for existing users, and
+converts old `todos` / `study_plans` (+ `study_links`) / `jobs` rows into module
+items. It is idempotent (guarded by a `schema_migrations` row) and leaves the old
+tables in place.
+
+```bash
+go run ./cmd/migrate       # schema + seed + data migration
+go run ./cmd/drop-legacy   # drop old tables once the result is verified
+```
+
 ## Business rules
 
-- **Todos** sort by priority (`urgent → normal → low`); completed tasks always
-  sink to the bottom.
-- **Study plans** hold one or more reference links and use the same reversible
-  done toggle.
+- **Modules** sort done items to the bottom and otherwise order by the first
+  dropdown field's option order, then newest first.
 - **Work sessions** store start/end timestamps; duration is computed on read,
   never stored. Only one session may run at a time.
 - **Transactions** store amounts as integer cents; the monthly summary returns

@@ -1,7 +1,8 @@
 # ZenHabits
 
-A personal daily-habit web app: todos, study plans, calendar reminders, job
-applications, a work timer, and an expense tracker with a wishlist.
+A personal habit app: build your own custom modules (with text, dropdown,
+subtask, date, and link fields) alongside a calendar, a work timer, and an
+expense tracker with a wishlist.
 
 - **Backend:** Go + Gin + GORM + PostgreSQL — see [`backend/README.md`](backend/README.md)
 - **Frontend:** Next.js (App Router) + Tailwind v4 — see [`frontend/README.md`](frontend/README.md)

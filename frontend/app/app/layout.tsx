@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { PageLoader } from "@/components/ui/states";
 import { useAuth } from "@/context/auth";
+import { ModulesProvider } from "@/context/modules";
 
 export default function AppLayout({
   children,
@@ -25,5 +26,9 @@ export default function AppLayout({
     return <PageLoader />;
   }
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <ModulesProvider>
+      <AppShell>{children}</AppShell>
+    </ModulesProvider>
+  );
 }

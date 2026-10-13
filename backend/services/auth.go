@@ -27,6 +27,7 @@ type LoginRequest struct {
 
 // AuthService owns account creation, login, and token lifecycle.
 type AuthService struct {
+	db     *gorm.DB
 	users  *repositories.UserRepository
 	tokens *repositories.RefreshTokenRepository
 	cfg    *config.Config
@@ -35,6 +36,7 @@ type AuthService struct {
 // NewAuthService builds an AuthService.
 func NewAuthService(db *gorm.DB, cfg *config.Config) *AuthService {
 	return &AuthService{
+		db:     db,
 		users:  repositories.NewUserRepository(db),
 		tokens: repositories.NewRefreshTokenRepository(db),
 		cfg:    cfg,
@@ -63,7 +65,16 @@ func (s *AuthService) Register(req RegisterRequest) (*models.User, error) {
 		Email:        email,
 		PasswordHash: hash,
 	}
-	if err := s.users.Create(user); err != nil {
+
+	// Create the account and its starter modules atomically, so a new user is
+	// never left without their default Todo/Study/Job modules.
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := repositories.NewUserRepository(tx).Create(user); err != nil {
+			return err
+		}
+		return SeedDefaultModules(tx, user.ID)
+	})
+	if err != nil {
 		return nil, err
 	}
 	return user, nil

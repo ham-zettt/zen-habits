@@ -6,56 +6,12 @@ export type User = {
   updatedAt: string;
 };
 
-export type TodoPriority = "urgent" | "normal" | "low";
-
-export type Todo = {
-  id: string;
-  title: string;
-  priority: TodoPriority;
-  isDone: boolean;
-  doneAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type StudyLink = {
-  id: string;
-  planId: string;
-  label: string;
-  url: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type StudyPlan = {
-  id: string;
-  title: string;
-  isDone: boolean;
-  doneAt: string | null;
-  links: StudyLink[] | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type Reminder = {
   id: string;
   title: string;
   notes: string;
   eventDate: string;
   eventTime: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type JobStatus = "Planning" | "Applied" | "In Process" | "Rejected";
-
-export type Job = {
-  id: string;
-  position: string;
-  company: string;
-  deadline: string | null;
-  url: string;
-  status: JobStatus;
   createdAt: string;
   updatedAt: string;
 };
@@ -103,4 +59,53 @@ export type ApiEnvelope<T> = {
   message?: string;
   data: T;
   error?: string;
+};
+
+export type FieldType = "text" | "dropdown" | "subtask" | "date" | "link";
+
+export type ModuleField = {
+  id: string;
+  moduleId: string;
+  label: string;
+  type: FieldType;
+  options: string[] | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Module = {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  fields: ModuleField[] | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SubtaskValue = {
+  id: string;
+  text: string;
+  done: boolean;
+};
+
+export type ModuleItem = {
+  id: string;
+  moduleId: string;
+  userId: string;
+  title: string;
+  isDone: boolean;
+  doneAt: string | null;
+  values: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ModuleFieldDraft = {
+  id?: string;
+  localKey: string;
+  label: string;
+  type: FieldType;
+  options: string[];
 };
