@@ -4,8 +4,8 @@ const TONES = {
   neutral: "text-ink-muted",
   primary: "text-primary-hover",
   success: "text-success",
-  danger: "text-[#ff6369]",
-  warning: "text-[#ffb224]",
+  danger: "text-danger",
+  warning: "text-warning",
 } as const;
 
 export type BadgeTone = keyof typeof TONES;

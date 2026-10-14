@@ -13,7 +13,7 @@ const VARIANTS: Record<Variant, string> = {
   tertiary: "bg-transparent text-ink hover:bg-surface-1",
   inverse: "bg-inverse-canvas text-inverse-ink hover:bg-inverse-surface-2",
   danger:
-    "border border-hairline bg-surface-1 text-ink hover:border-[#e5484d] hover:text-[#ff6369]",
+    "border border-hairline bg-surface-1 text-ink hover:border-danger-border hover:text-danger",
 };
 
 const SIZES: Record<Size, string> = {
